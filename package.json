@@ -1,0 +1,46 @@
+{
+  "name": "waveline-sync",
+  "version": "1.0.0",
+  "description": "Waveline Sync desktop applet",
+  "main": "index.js",
+  "scripts": {
+    "build": "webpack -p",
+    "start:watch": "nodemon -e js,ts,tsx --ignore dist/ --ignore node_modules/ --exec npm start",
+    "start": "webpack && qode ./dist/app.js",
+    "debug": "webpack && qode --inspect ./dist/app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Wellenline/waveline-sync.git"
+  },
+  "keywords": [
+    "waveline",
+    "sync",
+    "music",
+    "server"
+  ],
+  "author": "Wellenline OU",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Wellenline/waveline-sync/issues"
+  },
+  "homepage": "https://github.com/Wellenline/waveline-sync#readme",
+  "dependencies": {
+    "@nodegui/nodegui": "http://master-release.nodegui.org",
+    "chokidar": "^3.4.0",
+    "form-data": "^3.0.0",
+    "rxjs": "^6.5.5"
+  },
+  "devDependencies": {
+    "@nodegui/packer": "^1.4.1",
+    "@types/node": "^13.13.5",
+    "@types/node-fetch": "^2.5.7",
+    "file-loader": "^6.0.0",
+    "node-loader": "^0.6.0",
+    "nodemon": "^2.0.3",
+    "ts-loader": "^7.0.3",
+    "typescript": "^3.8.3",
+    "webpack": "^4.43.0",
+    "webpack-cli": "^3.3.11"
+  }
+}
