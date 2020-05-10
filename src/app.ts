@@ -15,17 +15,6 @@ export class App {
 		return App._instance ? App._instance : new App();
 	}
 
-	public set connected(status: boolean) {
-		this._connected = status;
-
-		this._actions.connect.setText(status ? "Disconnect" : "Connect");
-		this.settings.setValue(Settings.CONNECTED, status);
-	}
-
-	public get connected() {
-		return this._connected;
-	}
-
 	/** QWindow instance */
 	public window: QMainWindow = new QMainWindow();
 
@@ -49,6 +38,19 @@ export class App {
 
 	private _connected = false;
 
+	public set connected(status: boolean) {
+		this._connected = status;
+
+		this._actions.connect.setText(status ? "Disconnect" : "Connect");
+		this._actions.connect.setShortcut(new QKeySequence(status ? "Alt+D" : "Alt+C"));
+
+		this.settings.setValue(Settings.CONNECTED, status);
+	}
+
+	public get connected() {
+		return this._connected;
+	}
+
 	public run() {
 		this.connected = this.settings.value(Settings.CONNECTED).toBool();
 
@@ -60,7 +62,7 @@ export class App {
 
 		// Setup tray
 		this.tray.setIcon(this.icon("logo.png"));
-		this.tray.setToolTip("Waveliny Sync");
+		this.tray.setToolTip("Waveline Sync");
 		this.tray.setContextMenu(this.appMenu);
 		this.tray.show();
 
@@ -92,28 +94,17 @@ export class App {
 
 	public onConnect() {
 		console.log("onConnect() ");
+
+		this.connected = true;
 	}
 
 	public onDisconnect() {
 		console.log("onDisconnect() ");
+		this.connected = false;
 
 	}
 
 	// Menu Actions
-	private _connectAction() {
-		this._actions.connect.addEventListener("triggered", () => {
-			if (this.connected) {
-				return this.onDisconnect();
-			}
-
-			this.onConnect();
-		});
-
-		this.appMenu.addAction(this._actions.connect);
-		this.appMenu.addSeparator();
-
-	}
-
 	private _syncAction() {
 		this._actions.sync.setText("Sync");
 
@@ -134,6 +125,22 @@ export class App {
 
 		this.appMenu.addAction(this._actions.sync);
 		this.appMenu.addSeparator();
+	}
+
+	private _connectAction() {
+		this._actions.connect.addEventListener("triggered", () => {
+			if (this.connected) {
+				return this.onDisconnect();
+			}
+
+			this.onConnect();
+		});
+
+		this._actions.connect.setShortcut(new QKeySequence(this.connected ? "Alt+D" : "Alt+C"));
+
+		this.appMenu.addAction(this._actions.connect);
+		this.appMenu.addSeparator();
+
 	}
 
 	/** Quit app action */
