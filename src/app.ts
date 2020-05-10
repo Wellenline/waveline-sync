@@ -1,6 +1,7 @@
 import { QAction, QSystemTrayIcon, QMainWindow, QSettings, QIcon, QMenu, QKeySequence, QApplication } from "@nodegui/nodegui";
 import path from "path";
 import { Sync } from "./sync";
+import { Dialog } from "./dialog";
 
 export enum Settings {
 	CONNECTED = "connected",
@@ -12,7 +13,10 @@ export class App {
 	private static _instance: App;
 
 	public static get instance(): App {
-		return App._instance ? App._instance : new App();
+		if (!App._instance) {
+			App._instance = new App();
+		}
+		return App._instance;
 	}
 
 	/** QWindow instance */
@@ -95,7 +99,8 @@ export class App {
 	public onConnect() {
 		console.log("onConnect() ");
 
-		this.connected = true;
+		Dialog.instance.show();
+		// this.connected = true;
 	}
 
 	public onDisconnect() {

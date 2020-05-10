@@ -5,7 +5,10 @@ import { QFileDialog, FileMode } from "@nodegui/nodegui";
 export class Sync {
 
 	public static get instance(): Sync {
-		return Sync._instance ? Sync._instance : new Sync();
+		if (!Sync._instance) {
+			Sync._instance = new Sync();
+		}
+		return Sync._instance;
 	}
 
 	private static _instance: Sync;

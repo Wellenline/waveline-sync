@@ -5,7 +5,10 @@ export class Http {
 	private static _instance: Http;
 
 	public static get instance(): Http {
-		return Http._instance ? Http._instance : new Http();
+		if (!Http._instance) {
+			Http._instance = new Http();
+		}
+		return Http._instance;
 	}
 
 	public get(url: string) {
