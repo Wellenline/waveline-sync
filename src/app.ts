@@ -9,6 +9,7 @@ export enum Settings {
 }
 
 export class App {
+	private static _instance: App;
 
 	public static get instance(): App {
 		return App._instance ? App._instance : new App();
@@ -16,14 +17,14 @@ export class App {
 
 	public set connected(status: boolean) {
 		this._connected = status;
+
+		this._actions.connect.setText(status ? "Disconnect" : "Connect");
 		this.settings.setValue(Settings.CONNECTED, status);
 	}
 
 	public get connected() {
 		return this._connected;
 	}
-
-	private static _instance: App;
 
 	/** QWindow instance */
 	public window: QMainWindow = new QMainWindow();
@@ -40,12 +41,16 @@ export class App {
 	/** App Sub menu */
 	public appSubMenu = new QMenu();
 
-	public _actions: { quit?: QAction; sync?: QAction; connect?: QAction; } = {};
+	public _actions: { quit: QAction; sync: QAction; connect: QAction; } = {
+		connect: new QAction(),
+		sync: new QAction(),
+		quit: new QAction(),
+	};
 
 	private _connected = false;
 
 	public run() {
-		console.log("App running");
+		this.connected = this.settings.value(Settings.CONNECTED).toBool();
 
 		// Set window title
 		this.window.setWindowTitle("Waveline Sync");
@@ -54,7 +59,7 @@ export class App {
 		QApplication.instance().setQuitOnLastWindowClosed(false);
 
 		// Setup tray
-		this.tray.setIcon(this._icon("logo.png"));
+		this.tray.setIcon(this.icon("logo.png"));
 		this.tray.setToolTip("Waveliny Sync");
 		this.tray.setContextMenu(this.appMenu);
 		this.tray.show();
@@ -62,6 +67,7 @@ export class App {
 		// Setup actions
 
 		this._syncAction();
+		this._connectAction();
 		this._quitAppAction();
 
 		(global as any).win = this.window;
@@ -72,23 +78,43 @@ export class App {
 	 * Get neq QIcon by file name
 	 * @param name asset name
 	 */
-	public _icon(name: string) {
-		return new QIcon(this._assetAbsolutePath(name));
+	public icon(name: string) {
+		return new QIcon(this.assetAbsolutePath(name));
 	}
 
 	/**
 	 * Load asset from assets dir
 	 * @param name asset name
 	 */
-	public _assetAbsolutePath(name: string) {
+	public assetAbsolutePath(name: string) {
 		return path.resolve(__dirname, `../assets/${name}`);
 	}
 
+	public onConnect() {
+		console.log("onConnect() ");
+	}
+
+	public onDisconnect() {
+		console.log("onDisconnect() ");
+
+	}
+
 	// Menu Actions
+	private _connectAction() {
+		this._actions.connect.addEventListener("triggered", () => {
+			if (this.connected) {
+				return this.onDisconnect();
+			}
+
+			this.onConnect();
+		});
+
+		this.appMenu.addAction(this._actions.connect);
+		this.appMenu.addSeparator();
+
+	}
 
 	private _syncAction() {
-		this._actions.sync = new QAction();
-
 		this._actions.sync.setText("Sync");
 
 		this._addSubMenu("Add Directory", () => {
@@ -112,7 +138,6 @@ export class App {
 
 	/** Quit app action */
 	private _quitAppAction() {
-		this._actions.quit = new QAction();
 		this._actions.quit.setText("Quit");
 		this._actions.quit.setShortcut(new QKeySequence("Alt+Q"));
 		this._actions.quit.addEventListener("triggered", () => QApplication.instance().exit(0));
