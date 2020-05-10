@@ -1,17 +1,15 @@
 {
 	"compileOnSave": true,
 	"compilerOptions": {
-		"baseUrl": ".",
-		"target": "es2020",
+		"incremental": true,
+		"target": "es2016",
 		"module": "commonjs",
-		"experimentalDecorators": true,
-		"emitDecoratorMetadata": true,
-		"noImplicitAny": false,
+		"allowJs": true,
+		"checkJs": false,
 		"outDir": "dist",
-		"rootDir": "src",
-    "moduleResolution": "node",
-    "esModuleInterop": true
-
+		"sourceMap": true,
+		"moduleResolution": "node",
+		"esModuleInterop": true
 	},
 	"exclude": [
 		"node_modules",
