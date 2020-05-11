@@ -47,7 +47,7 @@ export class Http {
 	private async handleResponse(response: Response) {
 		const json = await response.json();
 		if (!response.ok) {
-			throw new Error(json);
+			throw json.message;
 		}
 		return json;
 	}

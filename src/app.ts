@@ -2,6 +2,7 @@ import { QAction, QSystemTrayIcon, QMainWindow, QSettings, QIcon, QMenu, QKeySeq
 import path from "path";
 import { Sync } from "./sync";
 import { Dialog } from "./dialog";
+import { Http } from "./http";
 
 export enum Settings {
 	CONNECTED = "connected",
@@ -47,6 +48,8 @@ export class App {
 
 		this._actions.connect.setText(status ? "Disconnect" : "Connect");
 		this._actions.connect.setShortcut(new QKeySequence(status ? "Alt+D" : "Alt+C"));
+
+		this._actions.sync.setEnabled(status);
 
 		this.settings.setValue(Settings.CONNECTED, status);
 	}
@@ -96,17 +99,32 @@ export class App {
 		return path.resolve(__dirname, `../assets/${name}`);
 	}
 
-	public onConnect() {
+	public async onConnect(credentials: { server: string, key?: string }) {
 		console.log("onConnect() ");
 
-		Dialog.instance.show();
-		// this.connected = true;
+		this.settings.setValue(Settings.SERVER, credentials.server);
+
+		if (credentials.key) {
+			this.settings.setValue(Settings.KEY, credentials.key);
+		}
+		this.settings.sync();
+
+		const system = await Http.instance.get(`/system/info`);
+
+		if (!system || !system._id) {
+			return this.onDisconnect();
+		}
+
+		this.connected = true;
 	}
 
 	public onDisconnect() {
 		console.log("onDisconnect() ");
-		this.connected = false;
+		this.settings.setValue(Settings.SERVER, "");
+		this.settings.setValue(Settings.KEY, "");
+		this.settings.sync();
 
+		this.connected = false;
 	}
 
 	// Menu Actions
@@ -137,8 +155,10 @@ export class App {
 			if (this.connected) {
 				return this.onDisconnect();
 			}
+			this.window.show();
+			this.window.hide();
 
-			this.onConnect();
+			Dialog.instance.show();
 		});
 
 		this._actions.connect.setShortcut(new QKeySequence(this.connected ? "Alt+D" : "Alt+C"));

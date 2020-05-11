@@ -5,7 +5,8 @@ import {
 	EchoMode, CursorShape, QPixmap, AspectRatioMode,
 	AlignmentFlag, QMessageBox, ButtonRole,
 } from "@nodegui/nodegui";
-import { App } from "./app";
+import { App, Settings } from "./app";
+import { Http } from "./http";
 
 export class Dialog {
 	private static _instance: Dialog;
@@ -14,6 +15,7 @@ export class Dialog {
 		if (!Dialog._instance) {
 			Dialog._instance = new Dialog();
 		}
+
 		return Dialog._instance;
 	}
 
@@ -77,17 +79,16 @@ export class Dialog {
 
 		this._loading = new QWidget();
 		this._loading.setObjectName("loading");
-		const loadingLayout = new FlexLayout();
-		this._loading.setLayout(loadingLayout);
+		this._loading.setLayout(new FlexLayout());
 
 		this._loadingLabel = new QLabel();
 		this._loadingLabel.setText("Connecting, please wait");
 		this._loadingLabel.setObjectName("label");
-
-		loadingLayout.addWidget(this._loadingLabel);
+		this._loading.layout.addWidget(this._loadingLabel);
 
 		// Build dialog ui
 		this._dialog.layout?.addWidget(this._appHeader());
+
 		this._dialog.layout?.addWidget(this._widget);
 
 		this._dialog.setStyleSheet(this.stylesheet);
@@ -111,10 +112,15 @@ export class Dialog {
 				key: this._serverKeyInput.text(),
 				server: this._serverInput.text(),
 			};
-			setTimeout(() => {
-				this._widget.show();
-				this._loading.close();
-			}, 3000);
+
+			if (!credentials.server || credentials.server.length <= 3) {
+				throw new Error("Please enter a valid server address");
+			}
+
+			await App.instance.onConnect(credentials);
+
+			this._dialog.close();
+
 		} catch (err) {
 			const messageBox = new QMessageBox();
 			messageBox.setText(err.toString());
