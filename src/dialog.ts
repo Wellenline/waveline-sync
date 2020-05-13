@@ -5,8 +5,7 @@ import {
 	EchoMode, CursorShape, QPixmap, AspectRatioMode,
 	AlignmentFlag, QMessageBox, ButtonRole,
 } from "@nodegui/nodegui";
-import { App, Settings } from "./app";
-import { Http } from "./http";
+import { App } from "./app";
 
 export class Dialog {
 	private static _instance: Dialog;

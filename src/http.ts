@@ -14,32 +14,30 @@ export class Http {
 	public get(url: string) {
 		return fetch(App.instance.settings.value(Settings.SERVER).toString() + url, {
 			method: "GET",
-			headers: this.headers({
-				"Accept": "application/json",
+			headers: {
 				"Content-Type": "application/json",
 				"x-api-key": App.instance.settings.value(Settings.KEY).toString(),
-			}),
+			},
 		}).then(this.handleResponse);
 	}
 
-	public post(url: string, body?: any) {
+	public post(url: string, body) {
 		return fetch(App.instance.settings.value(Settings.SERVER).toString() + url, {
 			method: "POST",
-			headers: this.headers({
-				"Accept": "application/json",
+			headers: {
 				"Content-Type": "application/json",
 				"x-api-key": App.instance.settings.value(Settings.KEY).toString(),
-			}),
-			body,
+			},
+			body: JSON.stringify(body),
 		}).then(this.handleResponse);
 	}
 
 	public upload(url: string, body: FormData) {
 		return fetch(App.instance.settings.value(Settings.SERVER).toString() + url, {
 			method: "POST",
-			headers: this.headers({
+			headers: {
 				"x-api-key": App.instance.settings.value(Settings.KEY).toString(),
-			}),
+			},
 			body,
 		}).then(this.handleResponse);
 	}
@@ -50,16 +48,5 @@ export class Http {
 			throw json.message;
 		}
 		return json;
-	}
-
-	private headers(obj: { [x: string]: string; Accept?: string; "Content-Type"?: string; "x-api-key"?: string; }) {
-		const headers = new Headers();
-
-		for (const key of Object.keys(obj)) {
-			headers.append(key, obj[key]);
-		}
-
-		return headers;
-
 	}
 }

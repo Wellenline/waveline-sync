@@ -8,6 +8,7 @@ export enum Settings {
 	CONNECTED = "connected",
 	SERVER = "server",
 	KEY = "key",
+	SYNC_DIRS = "sync",
 }
 
 export class App {
@@ -52,6 +53,12 @@ export class App {
 		this._actions.sync.setEnabled(status);
 
 		this.settings.setValue(Settings.CONNECTED, status);
+
+		if (status) {
+			Sync.instance.watch();
+		} else {
+			Sync.instance.unwatch();
+		}
 	}
 
 	public get connected() {
@@ -59,7 +66,21 @@ export class App {
 	}
 
 	public run() {
+
 		this.connected = this.settings.value(Settings.CONNECTED).toBool();
+		this._syncAction();
+
+		if (this.connected) {
+			for (const dir of Sync.instance._dirs) {
+				this._addSubMenu(dir, (action: QAction) => {
+					this.appSubMenu.removeAction(action);
+					// Stop watching for dir
+					Sync.instance.onRemoveDir([dir]);
+				});
+			}
+		} else {
+			this._actions.sync.setEnabled(false);
+		}
 
 		// Set window title
 		this.window.setWindowTitle("Waveline Sync");
@@ -74,8 +95,6 @@ export class App {
 		this.tray.show();
 
 		// Setup actions
-
-		this._syncAction();
 		this._connectAction();
 		this._quitAppAction();
 
@@ -122,6 +141,15 @@ export class App {
 		console.log("onDisconnect() ");
 		this.settings.setValue(Settings.SERVER, "");
 		this.settings.setValue(Settings.KEY, "");
+		this.settings.setValue(Settings.SYNC_DIRS, JSON.stringify([]));
+		const actions = this.appSubMenu.actions.values();
+		let i = 0;
+		for (const action of actions) {
+			if (i > 0) {
+				this.appSubMenu.removeAction(action);
+			}
+			i++;
+		}
 		this.settings.sync();
 
 		this.connected = false;
@@ -129,16 +157,16 @@ export class App {
 
 	// Menu Actions
 	private _syncAction() {
-		this._actions.sync.setText("Sync");
+		this._actions.sync.setText("✓ Ready to sync");
+		this._addSubMenu("+ Add Directory", (_action: QAction) => {
 
-		this._addSubMenu("Add Directory", () => {
 			const dir = Sync.instance.onSelectDir();
 
 			if (dir) {
 				this._addSubMenu(dir, (action: QAction) => {
 					this.appSubMenu.removeAction(action);
 					// Stop watching for dir
-					Sync.instance.unwatch([dir]);
+					Sync.instance.onRemoveDir([dir]);
 				});
 			}
 		});
@@ -179,6 +207,7 @@ export class App {
 	private _addSubMenu(text: string, cb: any) {
 		const action = new QAction();
 		action.setText(text);
+		action.setEnabled(true);
 		action.addEventListener("triggered", () => cb(action));
 		this.appSubMenu.addAction(action);
 		this.appSubMenu.addSeparator();
