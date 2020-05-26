@@ -129,8 +129,8 @@ export class App {
 		this.settings.sync();
 
 		const system = await Http.instance.get(`/system/info`);
-
-		if (!system || !system._id) {
+		console.log(system);
+		if (!system || !system.id) {
 			return this.onDisconnect();
 		}
 
